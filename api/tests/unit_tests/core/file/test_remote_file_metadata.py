@@ -84,6 +84,20 @@ class TestGuessFileInfoFromResponse:
         assert (info.filename, info.extension, info.mimetype) == (expected_filename, ".pdf", "application/pdf")
 
     @pytest.mark.parametrize(
+        "disposition",
+        ["attachment", 'attachment; filename=""', 'attachment; filename="dir/"'],
+    )
+    def test_unusable_response_filename_falls_back_to_url(self, disposition: str) -> None:
+        response = make_response(
+            url="https://example.com/fallback.txt",
+            headers={"Content-Disposition": disposition},
+        )
+
+        info = guess_file_info_from_response(response)
+
+        assert (info.filename, info.extension, info.mimetype) == ("fallback.txt", ".txt", "text/plain")
+
+    @pytest.mark.parametrize(
         ("magic_available", "expected_ext"),
         [
             (True, "txt"),

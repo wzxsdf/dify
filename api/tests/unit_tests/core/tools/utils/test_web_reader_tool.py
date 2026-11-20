@@ -237,6 +237,17 @@ def test_get_url_content_disposition_filename_detection(
     assert out == "From ExtractProcessor via filename"
 
 
+def test_get_url_without_content_type_or_filename_is_unsupported(monkeypatch: pytest.MonkeyPatch, stub_support_types):
+    def fake_head(url, headers=None, follow_redirects=True, timeout=None):
+        return FakeResponse(status_code=200, headers={"Content-Disposition": "attachment"})
+
+    import core.tools.utils.web_reader_tool as mod
+
+    _patch_remote_fetcher(monkeypatch, mod, head=fake_head)
+
+    assert get_url("https://x.test/no-filename") == "Unsupported content-type [None] of URL."
+
+
 def test_get_url_html_encoding_fallback_when_decode_fails(monkeypatch: pytest.MonkeyPatch, stub_support_types):
     """
     If chardet returns an encoding but content.decode raises, should fallback to response.text.
